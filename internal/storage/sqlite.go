@@ -117,7 +117,7 @@ func (s *SQLiteStore) ListDocuments(ctx context.Context) ([]domain.Document, err
 	}
 	defer rows.Close()
 
-	var docs []domain.Document
+	docs := make([]domain.Document, 0)
 	for rows.Next() {
 		var doc domain.Document
 		var uploadedAt string
@@ -233,7 +233,7 @@ func (s *SQLiteStore) SearchChunks(ctx context.Context, vector []float64, limit 
 	}
 	defer rows.Close()
 
-	var results []domain.DocumentChunk
+	results := make([]domain.DocumentChunk, 0)
 	for rows.Next() {
 		var chunk domain.DocumentChunk
 		var source string
