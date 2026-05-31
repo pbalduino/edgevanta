@@ -131,8 +131,12 @@ func (a *App) handleIngest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "path is required", http.StatusBadRequest)
 		return
 	}
-	if !filepath.IsAbs(req.Path) && !strings.HasPrefix(req.Path, "docs/") {
+	if !filepath.IsAbs(req.Path) {
 		req.Path = filepath.Clean(req.Path)
+		if !strings.HasPrefix(req.Path, a.cfg.AutoloadDir+"/") && req.Path != a.cfg.AutoloadDir {
+			http.Error(w, "relative ingest paths must be inside the autoload directory", http.StatusBadRequest)
+			return
+		}
 	}
 	if err := a.service.IngestFile(r.Context(), req.Path); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

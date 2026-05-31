@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -33,6 +34,9 @@ func NewEstimatorService(cfg config.Config, store *storage.SQLiteStore, openai *
 }
 
 func (s *EstimatorService) Bootstrap(ctx context.Context) error {
+	if err := os.MkdirAll(s.cfg.AutoloadDir, 0o755); err != nil {
+		return err
+	}
 	if err := os.MkdirAll(s.cfg.UploadDir, 0o755); err != nil {
 		return err
 	}
@@ -46,13 +50,11 @@ func (s *EstimatorService) Bootstrap(ctx context.Context) error {
 		existing[doc.Name] = doc
 	}
 
-	defaults := []string{
-		"docs/sample_bid_tabulation.csv",
-		"docs/specifications-vol-1.pdf",
-		"docs/specifications-vol-2.pdf",
-		"docs/plans.pdf",
+	autoloadFiles, err := discoverAutoloadFiles(s.cfg.AutoloadDir)
+	if err != nil {
+		return err
 	}
-	for _, path := range defaults {
+	for _, path := range autoloadFiles {
 		name := filepath.Base(path)
 		if doc, ok := existing[name]; ok {
 			if doc.Type == domain.DocumentTypePDF && doc.PageCount == 0 {
@@ -70,6 +72,27 @@ func (s *EstimatorService) Bootstrap(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func discoverAutoloadFiles(dir string) ([]string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	var files []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		ext := strings.ToLower(filepath.Ext(entry.Name()))
+		if ext != ".csv" && ext != ".pdf" {
+			continue
+		}
+		files = append(files, filepath.Join(dir, entry.Name()))
+	}
+	sort.Strings(files)
+	return files, nil
 }
 
 func (s *EstimatorService) IngestFile(ctx context.Context, path string) error {

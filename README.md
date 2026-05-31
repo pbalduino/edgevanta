@@ -15,7 +15,7 @@ It is intentionally not optimized for fancy frontend work, production deployment
 
 ## What It Does
 
-- Parses `docs/sample_bid_tabulation.csv` into structured SQLite tables.
+- Parses bid tabulation CSV files into structured SQLite tables.
 - Extracts text from `specifications-vol-1.pdf` and `specifications-vol-2.pdf` with native PDF extraction.
 - Falls back to OCR with `Tesseract` for pages with no extractable text, which is required for the scanned `plans.pdf`.
 - Chunks document text with page metadata and stores embeddings in SQLite.
@@ -122,13 +122,15 @@ Open:
 http://localhost:8080
 ```
 
-On first run, the app bootstraps the files in `docs/` into `data/estimator.db`.
+On first run, the app bootstraps any `.csv` and `.pdf` files found in `autoload/` into `data/estimator.db`.
+The `docs/` directory remains the stable source of provided assignment fixtures and is not auto-ingested unless you copy files into `autoload/`.
 
 Useful environment variables:
 
 ```bash
 HTTP_ADDR=:8080
 DATABASE_PATH=data/estimator.db
+AUTOLOAD_DIR=autoload
 OPENAI_MODEL=gpt-4.1-mini
 EMBEDDING_MODEL=text-embedding-3-small
 CHUNK_SIZE=1600
@@ -163,6 +165,14 @@ curl -X POST http://localhost:8080/api/upload \
   -F file=@/absolute/path/to/file.pdf
 ```
 
+Trigger ingestion from the autoload directory explicitly:
+
+```bash
+curl -X POST http://localhost:8080/api/ingest \
+  -H 'Content-Type: application/json' \
+  -d '{"path":"autoload/example.pdf"}'
+```
+
 ## Ingestion Notes
 
 ### CSV
@@ -181,6 +191,20 @@ curl -X POST http://localhost:8080/api/upload \
 - This is slower, but it is the correct tradeoff for a scanned plan set
 
 The logs show progress by page so the OCR behavior is visible during local runs.
+
+## Autoload Workflow
+
+Keep the provided fixtures in `docs/` untouched. For bootstrap testing:
+
+```bash
+mkdir -p autoload
+cp docs/sample_bid_tabulation.csv autoload/
+cp docs/plans.pdf autoload/
+rm -f data/estimator.db
+go run ./cmd/estimator
+```
+
+That gives you a clean way to vary startup ingestion without editing `docs/`.
 
 ## Retrieval
 

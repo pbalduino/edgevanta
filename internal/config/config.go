@@ -13,6 +13,7 @@ type Config struct {
 	EmbeddingModel     string
 	ChunkSize          int
 	ChunkOverlap       int
+	AutoloadDir        string
 	UploadDir          string
 	MaxRetrievedChunks int
 }
@@ -26,6 +27,7 @@ func Load() Config {
 		EmbeddingModel:     env("EMBEDDING_MODEL", "text-embedding-3-small"),
 		ChunkSize:          envInt("CHUNK_SIZE", 1600),
 		ChunkOverlap:       envInt("CHUNK_OVERLAP", 200),
+		AutoloadDir:        env("AUTOLOAD_DIR", "autoload"),
 		UploadDir:          env("UPLOAD_DIR", "data/uploads"),
 		MaxRetrievedChunks: envInt("MAX_RETRIEVED_CHUNKS", 6),
 	}
