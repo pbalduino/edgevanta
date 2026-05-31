@@ -104,7 +104,7 @@ That makes it easy to inspect which path the system took for a given question.
 
 Prerequisites:
 
-- Go `1.25+`
+- Go `1.24.1+`
 - `ghostscript` available as `gs`
 - `tesseract`
 - `OPENAI_API_KEY`
