@@ -104,7 +104,7 @@ That makes it easy to inspect which path the system took for a given question.
 
 Prerequisites:
 
-- Go `1.25.1`
+- Go `1.25+`
 - `ghostscript` available as `gs`
 - `tesseract`
 - `OPENAI_API_KEY`
@@ -216,6 +216,7 @@ This intentionally trades recall for explainability and fewer false positives.
 - For example, a response may mention a sheet label like `Sheet 34 of 39` because that text exists in the scanned drawing content, even though the PDF file itself has 63 pages.
 - Embeddings are stored in SQLite JSON rather than a real vector index.
 - Tool routing is heuristic rather than model-driven JSON tool calling.
+- `project-summary` is intentionally document-only. It does not assume the CSV and PDFs describe the same project.
 
 These are acceptable tradeoffs for a local take-home implementation focused on clarity and correctness.
 

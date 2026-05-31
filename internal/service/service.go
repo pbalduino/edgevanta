@@ -169,7 +169,11 @@ func (s *EstimatorService) AnalyzeBidData(ctx context.Context) (domain.ToolResul
 	if err != nil {
 		return domain.ToolResult{}, err
 	}
-	topItems, err := s.store.TopBidItems(ctx, 5)
+	topItemsAcrossAllBidders, err := s.store.TopBidItems(ctx, 5)
+	if err != nil {
+		return domain.ToolResult{}, err
+	}
+	topItemsLowestBidder, err := s.store.TopBidItemsLowestBidder(ctx, 5)
 	if err != nil {
 		return domain.ToolResult{}, err
 	}
@@ -177,8 +181,9 @@ func (s *EstimatorService) AnalyzeBidData(ctx context.Context) (domain.ToolResul
 		Tool:    "analyze_bid_data",
 		Summary: "Bid tabulation summary with top extended-amount items.",
 		Data: map[string]any{
-			"summary":   summary,
-			"top_items": topItems,
+			"summary":                      summary,
+			"top_items_across_all_bidders": topItemsAcrossAllBidders,
+			"top_items_lowest_bidder":      topItemsLowestBidder,
 		},
 	}, nil
 }
@@ -203,7 +208,7 @@ func (s *EstimatorService) FindPriceOutliers(ctx context.Context) (domain.ToolRe
 }
 
 func (s *EstimatorService) GetProjectSummary(ctx context.Context) (domain.ToolResult, error) {
-	project, err := s.store.ProjectSummary(ctx)
+	documentSummary, err := s.store.DocumentSummary(ctx)
 	if err != nil {
 		return domain.ToolResult{}, err
 	}
@@ -213,9 +218,9 @@ func (s *EstimatorService) GetProjectSummary(ctx context.Context) (domain.ToolRe
 	}
 	return domain.ToolResult{
 		Tool:    "get_project_summary",
-		Summary: "High-level project summary combining bid data and retrieved document context.",
+		Summary: "High-level summary of the uploaded project documents.",
 		Data: map[string]any{
-			"bid_summary":      project,
+			"document_summary": documentSummary,
 			"supporting_pages": chunks,
 		},
 	}, nil
@@ -296,8 +301,8 @@ func summarizeStructuredOutputs(toolOutputs map[string]any) string {
 		return summarizeOutliers(data)
 	}
 	if data, ok := toolOutputs["get_project_summary"].(map[string]any); ok {
-		raw, _ := json.MarshalIndent(data, "", "  ")
-		return "Project summary is available locally:\n" + string(raw)
+		raw, _ := json.MarshalIndent(data["document_summary"], "", "  ")
+		return "Project document summary is available locally:\n" + string(raw)
 	}
 	raw, _ := json.MarshalIndent(toolOutputs, "", "  ")
 	return "Structured result is available locally:\n" + string(raw)
@@ -305,9 +310,9 @@ func summarizeStructuredOutputs(toolOutputs map[string]any) string {
 
 func summarizeBidAnalysis(data map[string]any) string {
 	var lines []string
-	lines = append(lines, "The top 5 bid items by total extended amount are:")
+	lines = append(lines, "The top 5 bid items for the lowest bidder set (bid_rank = 1) are:")
 
-	if items, ok := data["top_items"].([]map[string]any); ok {
+	if items, ok := data["top_items_lowest_bidder"].([]map[string]any); ok {
 		for i, item := range items {
 			lines = append(lines, fmt.Sprintf(
 				"%d. %s (%s): %.2f %s total",
@@ -319,6 +324,8 @@ func summarizeBidAnalysis(data map[string]any) string {
 			))
 		}
 	}
+	lines = append(lines, "")
+	lines = append(lines, "The detailed payload also includes `top_items_across_all_bidders` as an aggregate view across every bidder in the tabulation.")
 
 	if summary, ok := data["summary"].(map[string]any); ok {
 		lines = append(lines, "")

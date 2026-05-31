@@ -309,6 +309,36 @@ func (s *SQLiteStore) TopBidItems(ctx context.Context, limit int) ([]map[string]
 	return items, rows.Err()
 }
 
+func (s *SQLiteStore) TopBidItemsLowestBidder(ctx context.Context, limit int) ([]map[string]any, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		select item_number, item_desc, unit, sum(ext_amount) as total_ext
+		from bid_rows
+		where bid_rank = 1
+		group by item_number, item_desc, unit
+		order by total_ext desc
+		limit ?`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []map[string]any
+	for rows.Next() {
+		var itemNumber, itemDesc, unit string
+		var total float64
+		if err := rows.Scan(&itemNumber, &itemDesc, &unit, &total); err != nil {
+			return nil, err
+		}
+		items = append(items, map[string]any{
+			"item_number":      itemNumber,
+			"item_desc":        itemDesc,
+			"unit":             unit,
+			"total_ext_amount": total,
+		})
+	}
+	return items, rows.Err()
+}
+
 func (s *SQLiteStore) PriceOutliers(ctx context.Context, minRatio, minZScore float64) ([]domain.PriceOutlier, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		select item_number, item_desc, unit, bidder, unit_price
@@ -390,28 +420,41 @@ func (s *SQLiteStore) PriceOutliers(ctx context.Context, minRatio, minZScore flo
 	return outliers, nil
 }
 
-func (s *SQLiteStore) ProjectSummary(ctx context.Context) (map[string]any, error) {
+func (s *SQLiteStore) DocumentSummary(ctx context.Context) (map[string]any, error) {
 	row := s.db.QueryRowContext(ctx, `
-		select project_id, county, let_date, count(distinct bidder), max(bid_total)
-		from bid_rows
-		group by project_id, county, let_date
-		order by max(bid_total) desc
-		limit 1`)
-	var projectID, county, letDate string
-	var bidderCount int
-	var maxTotal float64
-	if err := row.Scan(&projectID, &county, &letDate, &bidderCount, &maxTotal); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return map[string]any{}, nil
-		}
+		select count(*), coalesce(sum(page_count), 0)
+		from documents
+		where type = 'pdf'`)
+	var documentCount int
+	var pageCount int
+	if err := row.Scan(&documentCount, &pageCount); err != nil {
 		return nil, err
 	}
+
+	rows, err := s.db.QueryContext(ctx, `
+		select source, count(*)
+		from chunks
+		group by source
+		order by source`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	chunkCounts := map[string]int{}
+	for rows.Next() {
+		var source string
+		var count int
+		if err := rows.Scan(&source, &count); err != nil {
+			return nil, err
+		}
+		chunkCounts[source] = count
+	}
+
 	return map[string]any{
-		"project_id": projectID,
-		"county": county,
-		"let_date": letDate,
-		"bidder_count": bidderCount,
-		"highest_bid_total": maxTotal,
+		"pdf_document_count": documentCount,
+		"pdf_page_count":     pageCount,
+		"chunk_counts":       chunkCounts,
 	}, nil
 }
 
