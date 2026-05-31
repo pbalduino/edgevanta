@@ -1,0 +1,15 @@
+meta {
+  name: 08 Upload CSV
+  type: http
+  seq: 9
+}
+
+post {
+  url: http://localhost:8080/api/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(../sample_bid_tabulation.csv)
+}

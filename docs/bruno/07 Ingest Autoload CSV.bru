@@ -1,0 +1,21 @@
+meta {
+  name: 07 Ingest Autoload CSV
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/ingest
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "path": "autoload/sample_bid_tabulation.csv"
+  }
+}

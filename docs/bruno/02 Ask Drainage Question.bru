@@ -1,0 +1,21 @@
+meta {
+  name: 02 Ask Drainage Question
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/ask
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "question": "What does the plan set say about drainage requirements?"
+  }
+}

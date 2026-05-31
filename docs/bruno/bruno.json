@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Construction Estimating Agent",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
