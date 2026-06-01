@@ -1,6 +1,6 @@
-module github.com/pbalduino/ev_assignment
+module github.com/pbalduino/edgevanta
 
-go 1.24.1
+go 1.25.0
 
 require (
 	github.com/go-chi/chi/v5 v5.3.0

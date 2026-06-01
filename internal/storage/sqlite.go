@@ -11,7 +11,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/pbalduino/ev_assignment/internal/domain"
+	"github.com/pbalduino/edgevanta/internal/domain"
 
 	_ "modernc.org/sqlite"
 )

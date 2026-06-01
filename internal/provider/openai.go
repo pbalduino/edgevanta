@@ -12,7 +12,7 @@ import (
 	"github.com/openai/openai-go/responses"
 	"github.com/openai/openai-go/shared"
 
-	"github.com/pbalduino/ev_assignment/internal/domain"
+	"github.com/pbalduino/edgevanta/internal/domain"
 )
 
 var ErrAIUnavailable = errors.New("openai service unavailable")

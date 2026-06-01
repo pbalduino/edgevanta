@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pbalduino/ev_assignment/internal/config"
-	"github.com/pbalduino/ev_assignment/internal/domain"
-	"github.com/pbalduino/ev_assignment/internal/ingest"
-	"github.com/pbalduino/ev_assignment/internal/provider"
-	"github.com/pbalduino/ev_assignment/internal/storage"
+	"github.com/pbalduino/edgevanta/internal/config"
+	"github.com/pbalduino/edgevanta/internal/domain"
+	"github.com/pbalduino/edgevanta/internal/ingest"
+	"github.com/pbalduino/edgevanta/internal/provider"
+	"github.com/pbalduino/edgevanta/internal/storage"
 )
 
 type EstimatorService struct {

@@ -3,7 +3,7 @@ package service
 import (
 	"testing"
 
-	"github.com/pbalduino/ev_assignment/internal/domain"
+	"github.com/pbalduino/edgevanta/internal/domain"
 )
 
 func TestClassifyQuestionBidOutliers(t *testing.T) {

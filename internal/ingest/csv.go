@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pbalduino/ev_assignment/internal/domain"
+	"github.com/pbalduino/edgevanta/internal/domain"
 )
 
 func ParseBidCSV(ctx context.Context, path string, documentID int64) ([]domain.BidRow, error) {
